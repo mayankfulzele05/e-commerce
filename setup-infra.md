@@ -1,35 +1,13 @@
-## First Create a user in AWS IAM with any name
-## Attach Policies to the newly created user
-## below policies
-AmazonEC2FullAccess
+# Docker
 
-AmazonEKS_CNI_Policy
+```bash
 
-AmazonEKSClusterPolicy	
+sudo apt install docker.io
+sudo usermod -aG docker $USER
+newgrp docker
 
-AmazonEKSWorkerNodePolicy
 
-AWSCloudFormationFullAccess
-
-IAMFullAccess
-
-#### One more policy we need to create with content as below
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": "eks:*",
-            "Resource": "*"
-        }
-    ]
-}
 ```
-Attach this policy to your user as well
-
-![Policies To Attach](https://github.com/jaiswaladi246/Microservice/blob/Infra-Steps/Policies.png)
 
 # AWSCLI
 
@@ -50,46 +28,6 @@ sudo mv ./kubectl /usr/local/bin
 kubectl version --short --client
 ```
 
-## EKSCTL
-
-```bash
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-sudo mv /tmp/eksctl /usr/local/bin
-eksctl version
-```
-
-## Create EKS CLUSTER
-
-```bash
-eksctl create cluster --name=EKS-1 \
-                      --region=ap-south-1 \
-                      --zones=ap-south-1a,ap-south-1b \
-                      --without-nodegroup
-
-eksctl utils associate-iam-oidc-provider \
-    --region ap-south-1 \
-    --cluster EKS-1 \
-    --approve
-
-eksctl create nodegroup --cluster=EKS-1 \
-                       --region=ap-south-1 \
-                       --name=node2 \
-                       --node-type=t3.medium \
-                       --nodes=3 \
-                       --nodes-min=2 \
-                       --nodes-max=4 \
-                       --node-volume-size=20 \
-                       --ssh-access \
-                       --ssh-public-key=DevOps \
-                       --managed \
-                       --asg-access \
-                       --external-dns-access \
-                       --full-ecr-access \
-                       --appmesh-access \
-                       --alb-ingress-access
-```
-
-* Open INBOUND TRAFFIC IN ADDITIONAL Security Group
 * Create Servcie account/ROLE/BIND-ROLE/Token
 
 ## Create Service Account, Role & Assign that role, And create a secret for Service Account and geenrate a Token
