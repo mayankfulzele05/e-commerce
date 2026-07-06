@@ -237,6 +237,9 @@ Configure GitHub Webhook
 Whenever code is pushed to GitHub, Jenkins automatically scans all branches and executes the pipeline.
 
 ---
+<img width="1893" height="984" alt="Screenshot 2026-07-06 171150" src="https://github.com/user-attachments/assets/e779043c-2c4a-4429-9f28-c91ae05421e9" />
+
+
 
 # 🐳 CI Pipeline
 
@@ -322,6 +325,12 @@ The application should now be running successfully.
 
 ---
 
+<img width="1899" height="976" alt="Screenshot 2026-07-06 170934" src="https://github.com/user-attachments/assets/99debeb1-f68b-423e-8fc6-446621568150" />
+
+<img width="1924" height="1080" alt="Screenshot (24)" src="https://github.com/user-attachments/assets/8538e64f-5823-4bb2-9fe5-e688ca7bd5b2" />
+
+
+
 # 🔄 Complete CI/CD Workflow
 
 ```
@@ -406,20 +415,7 @@ This project demonstrates practical experience with
 
 ---
 
-# 🚀 Future Improvements
 
-- ArgoCD GitOps Deployment
-- Prometheus Monitoring
-- Grafana Dashboards
-- Ingress Controller
-- Blue-Green Deployment
-- Canary Deployment
-- Horizontal Pod Autoscaler
-- SonarQube Code Analysis
-- Trivy Image Scanning
-- AWS ECR Integration
-
----
 
 # 👨‍💻 Author
 
