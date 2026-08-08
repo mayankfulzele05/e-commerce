@@ -1,25 +1,61 @@
-# 🚀 Cloud-Native 12-Microservice E-Commerce Application with End-to-End DevOps CI/CD
+# 🚀 Cloud-Native 12-Microservice E-Commerce Application with End-to-End DevOps CI/CD & GitOps
 
-A production-style **cloud-native e-commerce application consisting of 12 independent microservices**, deployed on **Amazon EKS** using **Terraform**, **Jenkins**, **Docker**, and **Kubernetes**.
+A production-style **cloud-native e-commerce application consisting of 12 independent microservices**, deployed on **Amazon EKS** using **Terraform, Jenkins, Docker, Kubernetes, and Argo CD**.
 
-The project demonstrates a complete DevOps workflow starting from infrastructure provisioning to automated CI/CD pipelines, Docker image management, Kubernetes deployments, and application delivery through an AWS LoadBalancer.
+The project demonstrates a complete DevOps and GitOps workflow starting from infrastructure provisioning to automated CI pipelines, Docker image management, Git-based Kubernetes deployments, and application delivery through AWS LoadBalancer.
 
-Each microservice is independently containerized, built, pushed to Docker Hub, and deployed to Kubernetes using Jenkins Multibranch Pipelines.
+Each microservice is independently containerized, built, tested, and pushed to Docker Hub using Jenkins Multibranch Pipelines. **Argo CD continuously monitors the Kubernetes manifests stored in Git and automatically synchronizes the desired state with Amazon EKS.**
 
 ---
 
 # 📌 Project Overview
 
-This project automates the complete software delivery lifecycle.
+This project automates the complete software delivery lifecycle using a **CI + GitOps CD architecture**.
 
-- Infrastructure is provisioned using Terraform.
-- Amazon EKS cluster and EC2 instance are created automatically.
-- Jenkins is installed on Kubernetes using Helm.
-- GitHub Webhooks trigger Jenkins Multibranch Pipelines.
-- Docker images are built and pushed to Docker Hub.
-- Kubernetes automatically deploys the latest application version to Amazon EKS.
+* Infrastructure is provisioned using Terraform.
+* Amazon EKS cluster and EC2 instance are created automatically.
+* Jenkins is installed on Kubernetes using Helm.
+* GitHub Webhooks trigger Jenkins Multibranch Pipelines.
+* Docker images are built and pushed to Docker Hub.
+* Kubernetes manifests are maintained in Git.
+* Jenkins updates the required container image version in the Kubernetes manifest.
+* Argo CD monitors the Git repository for changes.
+* Argo CD automatically synchronizes the Kubernetes manifests with Amazon EKS.
+* Kubernetes provides service discovery, orchestration, and application scaling.
+* AWS LoadBalancer provides external application access.
 
----
+### CI/CD Architecture
+
+Jenkins is responsible for **Continuous Integration (CI)**:
+
+```text
+Code
+  │
+  ▼
+Jenkins
+  │
+  ├── Build
+  ├── Test
+  ├── Docker Image Build
+  └── Push Image to Docker Hub
+```
+
+Argo CD is responsible for **Continuous Delivery (CD)**:
+
+```text
+Kubernetes Manifest
+        │
+        ▼
+      GitHub
+        │
+        ▼
+     Argo CD
+        │
+        ▼
+     Amazon EKS
+```
+
+This follows a **GitOps deployment model**, where Git acts as the source of truth for the Kubernetes desired state.
 
 ---
 
@@ -29,38 +65,38 @@ The application is built using **12 independent microservices**, demonstrating a
 
 Each microservice has its own source code, Docker image, Jenkins pipeline, and Kubernetes deployment.
 
-### Services Included
+## Services Included
 
-| Microservice | Responsibility |
-|--------------|----------------|
-| Frontend | User Interface |
-| Ad Service | Displays advertisements |
-| Cart Service | Shopping cart management |
-| Checkout Service | Order checkout |
-| Currency Service | Currency conversion |
-| Email Service | Email notifications |
-| Payment Service | Payment processing |
-| Product Catalog Service | Product information |
-| Recommendation Service | Product recommendations |
-| Shipping Service | Shipping calculations |
-| Redis Cart | Shopping cart cache |
-| Load Generator | Simulates user traffic for testing |
+| Microservice            | Responsibility                     |
+| ----------------------- | ---------------------------------- |
+| Frontend                | User Interface                     |
+| Ad Service              | Displays advertisements            |
+| Cart Service            | Shopping cart management           |
+| Checkout Service        | Order checkout                     |
+| Currency Service        | Currency conversion                |
+| Email Service           | Email notifications                |
+| Payment Service         | Payment processing                 |
+| Product Catalog Service | Product information                |
+| Recommendation Service  | Product recommendations            |
+| Shipping Service        | Shipping calculations              |
+| Redis Cart              | Shopping cart cache                |
+| Load Generator          | Simulates user traffic for testing |
 
-### Microservice Workflow
+## Microservice Workflow
 
 ```text
 Frontend
-    │
-    ├── Product Catalog
-    ├── Recommendation
-    ├── Cart
-    ├── Checkout
-    ├── Currency
-    ├── Payment
-    ├── Shipping
-    ├── Email
-    ├── Ad Service
-    └── Redis
+   │
+   ├── Product Catalog
+   ├── Recommendation
+   ├── Cart
+   ├── Checkout
+   ├── Currency
+   ├── Payment
+   ├── Shipping
+   ├── Email
+   ├── Ad Service
+   └── Redis
 ```
 
 This architecture demonstrates service-to-service communication, independent deployments, and Kubernetes-based orchestration.
@@ -69,71 +105,129 @@ This architecture demonstrates service-to-service communication, independent dep
 
 # 🏗️ Architecture
 
+```text
+                         GitHub Repository
+                               │
+                         Push / Pull Request
+                               │
+                               ▼
+                    Jenkins Multibranch Pipeline
+                               │
+                    ┌──────────┴──────────┐
+                    │                     │
+               Build & Test         Docker Image
+                    │                     │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                          Docker Hub
+                               │
+                               │
+                  Update Kubernetes Manifest
+                               │
+                               ▼
+                         GitHub Repository
+                               │
+                               │ GitOps
+                               ▼
+                            Argo CD
+                               │
+                         Auto Sync / Reconcile
+                               │
+                               ▼
+                        Amazon EKS Cluster
+                               │
+                       Kubernetes Deployment
+                               │
+                         LoadBalancer Service
+                               │
+                               ▼
+                         End User Access
 ```
-                GitHub Repository
-                       │
-                 Push / Pull Request
-                       │
-                 GitHub Webhook
-                       │
-                Jenkins Multibranch
-                       │
-        ┌──────────────┴──────────────┐
-        │                             │
-   Build Docker Image          Push Image
-        │                             │
-        └──────────────┬──────────────┘
-                       │
-                  Docker Hub
-                       │
-             kubectl apply -f
-                       │
-               Amazon EKS Cluster
-                       │
-          Kubernetes Deployment
-                       │
-             LoadBalancer Service
-                       │
-                 End User Access
+
+### GitOps Deployment Flow
+
+```text
+Developer
+    │
+    ▼
+GitHub Microservice Branch
+    │
+    ▼
+Jenkins CI
+    │
+    ├── Clone Source Code
+    ├── Build Application
+    ├── Build Docker Image
+    └── Push Image to Docker Hub
+             │
+             ▼
+       Update Image Tag
+       in Kubernetes Manifest
+             │
+             ▼
+        Git Push to Main
+             │
+             ▼
+          Argo CD
+             │
+       Detect Git Change
+             │
+             ▼
+       Automatic Sync
+             │
+             ▼
+         Amazon EKS
+             │
+             ▼
+       Updated Application
 ```
 
 ---
 
 # ☁️ AWS Services Used
 
-- Amazon EC2
-- Amazon EKS
-- IAM User
-- Elastic Load Balancer (ELB)
+* Amazon EC2
+* Amazon EKS
+* IAM
+* Elastic Load Balancer (ELB)
 
 ---
 
-# 🛠️ DevOps Tools Used
+# 🛠️ DevOps & GitOps Tools Used
 
-- Terraform
-- Docker
-- Kubernetes
-- Jenkins
-- Helm
-- kubectl
-- AWS CLI
-- Git
-- GitHub Webhooks
+* Terraform
+* Docker
+* Kubernetes
+* Jenkins
+* Argo CD
+* Helm
+* kubectl
+* AWS CLI
+* Git
+* GitHub Webhooks
+* Docker Hub
 
 ---
 
 # 📂 Repository Structure
 
-```
+```text
 .
 ├── Jenkinsfile
 ├── deployment-service.yml
+├── argocd/
+│   └── application.yaml
 ├── terraform/
 ├── scripts/
 ├── frontend/
 ├── backend/
 └── README.md
 ```
+
+The Kubernetes manifests are stored in Git and act as the **desired state** for the application.
+
+Argo CD monitors the configured Git repository and synchronizes these manifests with the Kubernetes cluster.
 
 ---
 
@@ -143,24 +237,24 @@ Infrastructure is provisioned entirely using Terraform.
 
 Terraform creates:
 
-- Amazon EC2 Instance
-- Amazon EKS Cluster
-- Required Networking Components
-- Worker Nodes
+* Amazon EC2 Instance
+* Amazon EKS Cluster
+* Required Networking Components
+* Worker Nodes
 
-Initialize Terraform
+## Initialize Terraform
 
 ```bash
 terraform init
 ```
 
-Review execution plan
+## Review Execution Plan
 
 ```bash
 terraform plan
 ```
 
-Provision infrastructure
+## Provision Infrastructure
 
 ```bash
 terraform apply
@@ -172,13 +266,14 @@ terraform apply
 
 After the EC2 instance is created, install the required tools.
 
-Installed packages
+Installed packages:
 
-- Docker
-- kubectl
-- AWS CLI
+* Docker
+* kubectl
+* AWS CLI
+* Git
 
-Run the installation script
+Run the installation script:
 
 ```bash
 chmod +x install.sh
@@ -196,18 +291,18 @@ Configure AWS CLI using an IAM User.
 aws configure
 ```
 
-Provide
+Provide:
 
-- AWS Access Key
-- AWS Secret Key
-- Region
-- Output Format
+* AWS Access Key
+* AWS Secret Key
+* Region
+* Output Format
 
 ---
 
 # ☸️ Connect EC2 to Amazon EKS
 
-Update kubeconfig
+Update kubeconfig:
 
 ```bash
 aws eks update-kubeconfig \
@@ -215,7 +310,7 @@ aws eks update-kubeconfig \
 --name <cluster-name>
 ```
 
-Verify cluster connection
+Verify cluster connection:
 
 ```bash
 kubectl get nodes
@@ -225,25 +320,25 @@ kubectl get nodes
 
 # ⛵ Install Jenkins using Helm
 
-Add Helm repository
+Add Helm repository:
 
 ```bash
 helm repo add jenkins https://charts.jenkins.io
 ```
 
-Update repositories
+Update repositories:
 
 ```bash
 helm repo update
 ```
 
-Install Jenkins
+Install Jenkins:
 
 ```bash
 helm install jenkins jenkins/jenkins
 ```
 
-Verify installation
+Verify installation:
 
 ```bash
 kubectl get pods
@@ -253,20 +348,20 @@ kubectl get pods
 
 # 🔑 Configure Jenkins
 
-Configure the following credentials inside Jenkins.
+Configure the following credentials inside Jenkins:
 
-- GitHub Credentials
-- Docker Hub Credentials
-- Kubernetes Token
+* GitHub Credentials
+* Docker Hub Credentials
 
-Install Plugins
+Jenkins does **not** require Kubernetes deployment credentials in the GitOps architecture because Argo CD performs the deployment to EKS.
 
-- Docker
-- Docker Pipeline
-- Kubernetes CLI
-- GitHub
-- Webhook
-- Multibranch Pipeline
+## Install Plugins
+
+* Docker
+* Docker Pipeline
+* GitHub
+* Webhook
+* Multibranch Pipeline
 
 ---
 
@@ -274,115 +369,347 @@ Install Plugins
 
 Create a Multibranch Pipeline project.
 
-Configure
+Configure:
 
-- GitHub Repository
-- Git Credentials
-- Branch Source
-- Scan by Webhook
-- Trigger Token
+* GitHub Repository
+* Git Credentials
+* Branch Source
+* Scan by Webhook
+* Trigger Token
 
-Configure GitHub Webhook
+## Configure GitHub Webhook
 
-Whenever code is pushed to GitHub, Jenkins automatically scans all branches and executes the pipeline.
+Whenever code is pushed to GitHub, Jenkins automatically scans the branches and executes the corresponding CI pipeline.
 
 ---
-<img width="1893" height="984" alt="Screenshot 2026-07-06 171150" src="https://github.com/user-attachments/assets/e779043c-2c4a-4429-9f28-c91ae05421e9" />
 
-
-### 🔄 Microservice CI/CD
+# 🔄 Microservice CI/CD
 
 Each microservice branch is configured as an independent Jenkins Multibranch Pipeline.
 
 Whenever changes are pushed to a specific microservice branch:
 
 1. Jenkins automatically detects the branch.
-2. Builds the Docker image.
-3. Pushes the image to Docker Hub.
-4. The **main** branch deploys the updated application to Amazon EKS using Kubernetes manifests.
+2. Jenkins clones the source code.
+3. Jenkins builds the application.
+4. Jenkins builds the Docker image.
+5. Jenkins pushes the image to Docker Hub.
+6. The Kubernetes image reference is updated in the Git repository.
+7. Argo CD detects the Git change.
+8. Argo CD synchronizes the updated Kubernetes manifest with Amazon EKS.
 
-This architecture enables independent development, testing, and deployment of all **12 microservices**, similar to real-world production environments.
+This architecture enables independent development and deployment of all **12 microservices** while maintaining Git as the source of truth.
 
 ---
-
 
 # 🐳 CI Pipeline
 
-For every code push
+For every code push:
 
-- Clone repository
-- Build Docker Image
-- Tag Docker Image
-- Push Image to Docker Hub
+```text
+Clone Repository
+       │
+       ▼
+Build Application
+       │
+       ▼
+Run Tests
+       │
+       ▼
+Build Docker Image
+       │
+       ▼
+Tag Docker Image
+       │
+       ▼
+Push Image to Docker Hub
+```
+
+Jenkins is responsible only for the **Continuous Integration** portion of the pipeline.
 
 ---
 
-# ☸️ Kubernetes Authentication
+# 📦 Container Image Management
 
-Create a Kubernetes Service Account.
+Docker images are built independently for each microservice.
 
-Generate a token
+Example:
 
-Store the generated token in Jenkins as
-
-```
-Secret Text Credential
-```
-
-Generate the Kubernetes pipeline snippet using
-
-```
-Pipeline Syntax
-
-↓
-
-withKubeCredentials
+```text
+mayankfulzele/frontend:<tag>
+mayankfulzele/cartservice:<tag>
+mayankfulzele/paymentservice:<tag>
 ```
 
-Provide
+The image tag is updated in the Kubernetes deployment manifest after a successful CI build.
 
-- Kubernetes API Endpoint
-- Namespace
-- Cluster Name
-- Secret Text Credential
+Example:
 
-Generate the Groovy snippet and use it inside the Jenkins Pipeline.
+```yaml
+containers:
+  - name: frontend
+    image: mayankfulzele/frontend:<new-tag>
+```
+
+The updated manifest is committed and pushed to Git.
 
 ---
 
-# 🚀 Continuous Deployment
+# 🚀 Continuous Deployment with Argo CD
 
-Deploy the application
+Argo CD is used as the **Continuous Delivery and GitOps tool** for this project.
+
+Instead of Jenkins directly executing:
 
 ```bash
 kubectl apply -f deployment-service.yml
 ```
 
-Verify
+the deployment process is:
+
+```text
+Jenkins
+   │
+   ├── Build Image
+   ├── Push Image
+   └── Update Kubernetes Manifest
+            │
+            ▼
+          GitHub
+            │
+            ▼
+         Argo CD
+            │
+            ▼
+      Amazon EKS Cluster
+```
+
+Jenkins no longer directly deploys workloads to Kubernetes.
+
+Argo CD continuously monitors the Git repository and compares the desired Kubernetes state stored in Git with the actual state running in EKS.
+
+---
+
+# 🔄 Install Argo CD
+
+Create the Argo CD namespace:
 
 ```bash
-kubectl get deployments
+kubectl create namespace argocd
+```
 
-kubectl get pods
+Install Argo CD:
 
-kubectl get svc
+```bash
+kubectl apply -n argocd \
+-f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+Verify the installation:
+
+```bash
+kubectl get pods -n argocd
+```
+
+All Argo CD components should become ready.
+
+---
+
+# 🌐 Access Argo CD
+
+For a simple setup, expose the Argo CD server using a LoadBalancer:
+
+```bash
+kubectl patch svc argocd-server \
+-n argocd \
+-p '{"spec":{"type":"LoadBalancer"}}'
+```
+
+Check the service:
+
+```bash
+kubectl get svc -n argocd
+```
+
+Obtain the Argo CD LoadBalancer endpoint from the `EXTERNAL-IP` or AWS LoadBalancer DNS.
+
+---
+
+# 🔑 Argo CD Login
+
+The default username is:
+
+```text
+admin
+```
+
+Retrieve the initial password:
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret \
+-o jsonpath="{.data.password}" | base64 -d
+```
+
+Use these credentials to access the Argo CD UI.
+
+---
+
+# 📋 Create Argo CD Application
+
+Create:
+
+```text
+argocd/application.yaml
+```
+
+Example:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: ecommerce
+  namespace: argocd
+
+spec:
+
+  project: default
+
+  source:
+    repoURL: https://github.com/mayankfulzele05/E-Commerce-microservices-application.git
+    targetRevision: main
+    path: .
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+
+Apply the Argo CD Application:
+
+```bash
+kubectl apply -f argocd/application.yaml
+```
+
+> Update the `path` and `namespace` according to the final location of your Kubernetes manifests.
+
+---
+
+# 🔄 Argo CD Auto-Sync
+
+The application uses automated synchronization:
+
+```yaml
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+```
+
+### Automated Sync
+
+When a Kubernetes manifest changes in Git:
+
+```text
+Git Change
+    │
+    ▼
+Argo CD Detects Change
+    │
+    ▼
+Application becomes OutOfSync
+    │
+    ▼
+Automatic Sync
+    │
+    ▼
+Amazon EKS Updated
+```
+
+### Self-Healing
+
+If the Kubernetes state is manually changed:
+
+```bash
+kubectl scale deployment <deployment-name> --replicas=1
+```
+
+while Git specifies:
+
+```yaml
+replicas: 3
+```
+
+Argo CD detects the drift and restores the desired state from Git.
+
+This provides **self-healing Kubernetes deployments**.
+
+---
+
+# 🔁 GitOps Deployment Workflow
+
+The final deployment workflow is:
+
+```text
+1. Developer pushes code
+          │
+          ▼
+2. GitHub
+          │
+          ▼
+3. Jenkins Multibranch Pipeline
+          │
+          ├── Build
+          ├── Test
+          ├── Docker Build
+          └── Docker Push
+                    │
+                    ▼
+4. Update Kubernetes image tag
+                    │
+                    ▼
+5. Commit manifest to Git
+                    │
+                    ▼
+6. Argo CD detects Git change
+                    │
+                    ▼
+7. Argo CD synchronizes application
+                    │
+                    ▼
+8. Amazon EKS
+                    │
+                    ▼
+9. Kubernetes Deployment
+                    │
+                    ▼
+10. LoadBalancer
+                    │
+                    ▼
+11. Application Available
 ```
 
 ---
 
 # 🌐 Access Application
 
-Obtain the LoadBalancer URL
+Obtain the LoadBalancer URL:
 
 ```bash
 kubectl get svc
 ```
 
-Copy the External IP / DNS
+Copy the External IP / DNS.
 
-Open it in the browser
+Open it in the browser:
 
-```
+```text
 http://<LoadBalancer-DNS>
 ```
 
@@ -390,103 +717,118 @@ The application should now be running successfully.
 
 ---
 
-<img width="1899" height="976" alt="Screenshot 2026-07-06 170934" src="https://github.com/user-attachments/assets/99debeb1-f68b-423e-8fc6-446621568150" />
+# 🔄 Complete CI/CD + GitOps Workflow
 
-<img width="1924" height="1080" alt="Screenshot (24)" src="https://github.com/user-attachments/assets/8538e64f-5823-4bb2-9fe5-e688ca7bd5b2" />
-
-
-
-# 🔄 Complete CI/CD Workflow
-
+```text
+                         Developer
+                             │
+                             ▼
+                    Push Code to GitHub
+                             │
+                             ▼
+                  GitHub Webhook Trigger
+                             │
+                             ▼
+                 Jenkins Multibranch CI
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+         Build & Test                 Docker Build
+                                            │
+                                            ▼
+                                    Push to Docker Hub
+                                            │
+                                            ▼
+                              Update Kubernetes Manifest
+                                            │
+                                            ▼
+                                   Commit & Push to Git
+                                            │
+                                            ▼
+                                         Argo CD
+                                            │
+                                    Detect Git Change
+                                            │
+                                            ▼
+                                      Auto Sync
+                                            │
+                                            ▼
+                                      Amazon EKS
+                                            │
+                                            ▼
+                                Kubernetes Deployment
+                                            │
+                                            ▼
+                                    LoadBalancer
+                                            │
+                                            ▼
+                                  Application Available
 ```
-Developer
 
-      │
+---
 
-Push Code to GitHub
+# 🛡️ GitOps Benefits
 
-      │
+Using Argo CD provides:
 
-GitHub Webhook
-
-      │
-
-Jenkins Multibranch Pipeline
-
-      │
-
-Clone Repository
-
-      │
-
-Build Docker Image
-
-      │
-
-Push Image to Docker Hub
-
-      │
-
-kubectl apply
-
-      │
-
-Amazon EKS
-
-      │
-
-Kubernetes Deployment
-
-      │
-
-LoadBalancer Service
-
-      │
-
-Application Available
-```
+* Git as the single source of truth
+* Automated Kubernetes deployments
+* Continuous reconciliation
+* Drift detection
+* Self-healing
+* Automated synchronization
+* Better separation between CI and CD
+* Reduced Kubernetes credentials in Jenkins
+* Deployment history through Git
+* Easy rollback by reverting Git commits
+* Kubernetes-native continuous delivery
 
 ---
 
 # 📈 Features
 
-- Cloud-native application with **12 independent microservices**
-- Infrastructure Provisioning using Terraform
-- Amazon EKS Kubernetes Cluster
-- Jenkins Multibranch CI/CD Pipeline
-- Docker Image Build & Push to Docker Hub
-- GitHub Webhook Automation
-- Kubernetes Deployments & Services
-- AWS LoadBalancer Integration
-- Automated Continuous Deployment
-- Independent Microservice Deployments
-- Kubernetes Service Account Authentication
-- Highly Scalable Cloud Architecture
+* Cloud-native application with **12 independent microservices**
+* Infrastructure Provisioning using Terraform
+* Amazon EKS Kubernetes Cluster
+* Jenkins Multibranch CI
+* Docker Image Build & Push to Docker Hub
+* GitHub Webhook Automation
+* Kubernetes Deployments & Services
+* AWS LoadBalancer Integration
+* **Argo CD GitOps-based Continuous Delivery**
+* **Automated Argo CD Synchronization**
+* **Argo CD Self-Healing**
+* Git-based Kubernetes Desired State
+* Independent Microservice CI Pipelines
+* Kubernetes Service Account Authentication
+* Highly Scalable Cloud Architecture
 
 ---
 
 # 📚 Learning Outcomes
 
-This project demonstrates practical experience with
+This project demonstrates practical experience with:
 
-- Infrastructure as Code
-- AWS Cloud
-- Docker
-- Kubernetes
-- Jenkins
-- Helm
-- GitHub Webhooks
-- CI/CD Pipelines
-- Container Orchestration
-- Cloud-Native Application Deployment
-- Microservices Architecture
-- Kubernetes Service Discovery
-- Independent Service Deployment
-- Amazon EKS Administration
-- Production-style CI/CD for Multiple Microservices
-
----
-
+* Infrastructure as Code
+* AWS Cloud
+* Docker
+* Kubernetes
+* Jenkins
+* Helm
+* GitHub Webhooks
+* CI/CD Pipelines
+* **GitOps**
+* **Argo CD**
+* Continuous Delivery
+* Container Orchestration
+* Cloud-Native Application Deployment
+* Microservices Architecture
+* Kubernetes Service Discovery
+* Independent Service Deployment
+* Amazon EKS Administration
+* Production-style CI/CD for Multiple Microservices
+* Kubernetes Desired State Management
+* Automated Synchronization and Self-Healing
 
 ---
 
@@ -544,8 +886,6 @@ Example:
 kubectl get pods
 ```
 
-Output:
-
 ```text
 jenkins-0    CrashLoopBackOff
 ```
@@ -558,9 +898,9 @@ The EKS cluster was missing the **AWS EBS CSI Driver**, preventing Kubernetes fr
 
 ### Solution
 
-- Installed the AWS EBS CSI Driver on the EKS cluster.
-- Verified that the StorageClass was configured correctly.
-- Confirmed that the Persistent Volume Claim was successfully bound.
+* Installed the AWS EBS CSI Driver on the EKS cluster.
+* Verified that the StorageClass was configured correctly.
+* Confirmed that the Persistent Volume Claim was successfully bound.
 
 Verification:
 
@@ -616,38 +956,42 @@ The Jenkins pipeline was then able to build and push Docker images successfully.
 
 ---
 
-## 4. Kubernetes Authentication from Jenkins
+## 4. Jenkins Kubernetes Authentication
 
-### Issue
+### Previous Architecture
 
-Jenkins was unable to deploy resources to the Kubernetes cluster.
-
-Example:
-
-```text
-You must be logged in to the server
-```
-
-### Root Cause
-
-Jenkins was not authenticated to the EKS cluster.
-
-### Solution
-
-- Created a Kubernetes Service Account.
-- Generated a Service Account Token.
-- Stored the token in Jenkins as a **Secret Text Credential**.
-- Used the `withKubeCredentials` pipeline step with:
-  - Kubernetes API Server Endpoint
-  - Namespace
-  - Cluster Name
-  - Secret Text Credential
-
-This allowed Jenkins to authenticate and successfully execute:
+Initially Jenkins directly deployed Kubernetes resources using:
 
 ```bash
 kubectl apply -f deployment-service.yml
 ```
+
+This required Kubernetes credentials inside Jenkins.
+
+### GitOps Architecture
+
+After integrating Argo CD, Jenkins is responsible for CI and does not directly deploy to Kubernetes.
+
+The new flow is:
+
+```text
+Jenkins
+   │
+   ├── Build Image
+   ├── Push Image
+   └── Update Git Manifest
+             │
+             ▼
+           GitHub
+             │
+             ▼
+          Argo CD
+             │
+             ▼
+          Amazon EKS
+```
+
+This reduces the need for direct Kubernetes deployment credentials in Jenkins and establishes Git as the source of truth.
 
 ---
 
@@ -663,20 +1007,67 @@ The GitHub webhook was either missing or incorrectly configured.
 
 ### Solution
 
-- Configured a GitHub Webhook pointing to the Jenkins webhook endpoint.
-- Installed the GitHub and Multibranch Pipeline plugins.
-- Enabled **Scan by Webhook** in the Jenkins Multibranch Pipeline.
+* Configured a GitHub Webhook pointing to the Jenkins webhook endpoint.
+* Installed the GitHub and Multibranch Pipeline plugins.
+* Enabled **Scan by Webhook** in the Jenkins Multibranch Pipeline.
 
 After configuration, every push to a branch automatically triggered the corresponding Jenkins pipeline.
 
 ---
 
+## 6. Argo CD Application OutOfSync
+
+### Issue
+
+Argo CD showed the application as:
+
+```text
+OutOfSync
+```
+
+### Troubleshooting
+
+Check the application:
+
+```bash
+kubectl get applications -n argocd
+```
+
+Check Argo CD resources:
+
+```bash
+kubectl get pods -n argocd
+```
+
+Verify the Git repository URL and branch configured in the Argo CD Application.
+
+Check the application details from the Argo CD UI to identify the resource causing the synchronization difference.
+
+### Expected State
+
+Once the Git repository and Kubernetes manifests are correctly configured:
+
+```text
+Git Desired State
+        │
+        ▼
+     Argo CD
+        │
+        ▼
+   EKS Actual State
+
+      Synced
+       +
+     Healthy
+```
+
+---
 
 # 👨‍💻 Author
 
 **Mayank Fulzele**
 
-DevOps | AWS | Kubernetes | Docker | Terraform | Jenkins
+DevOps | AWS | Kubernetes | Docker | Terraform | Jenkins | Argo CD
 
 ---
 
