@@ -697,6 +697,10 @@ The final deployment workflow is:
 
 ---
 
+
+<img width="1935" height="1080" alt="Screenshot (73)" src="https://github.com/user-attachments/assets/fcb42617-4497-4c07-be60-4efb853a9d2f" />
+
+
 # 🌐 Access Application
 
 Obtain the LoadBalancer URL:
